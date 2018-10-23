@@ -73,7 +73,7 @@ else:
                     print('\n No sequence with more than {} characters were found.'.format(number))
                 else:
                     print('\n {} sequences with more than {} characters were found.'.format(removed,number))
-            elif reference[1:5] == 'diff':
+            elif reference[1:5] == 'seta':
                 archive = reference[6:-1]+reference[-1]
         else:
             removed = name_remover(archive,reference)
