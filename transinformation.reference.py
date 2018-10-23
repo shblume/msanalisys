@@ -21,8 +21,12 @@ except ImportError:
 # Constant defined:
 
 ALPHABET = odict()
-ALPHABET = {'-':0,'X':0,'H':1,'R':2,'K':3,'I':4,'F':5,'L':6,'W':7,'A':8,'M':9,'P':10,'C':11,'N':12,'V':13,'G':14,'S':15,'Q':16,'Z':16,'Y':17,'B':18,'E':19,'T':20,'D':23,'0':'24','1':25,'2':26} 
-Q = len(ALPHABET)
+ALPHABET = {"A": 0, "R": 1, "N": 2, "D": 3, "Q": 4,
+          "E": 5, "G": 6, "H": 7, "L": 8, "K": 9,
+          "M":10, "F":11, "S":12, "T":13, "W":14,
+          "Y":15, "C":16, "I":17, "P":18, "V":19,
+          "-":20, ".":20, "B": 2, "Z": 4, "X":20, "J":20}
+Q = 21
 VLIST = list(ALPHABET.values())
 
 # Functions defined:
