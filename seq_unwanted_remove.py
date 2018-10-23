@@ -2,7 +2,6 @@
 
 # Libraries imported:
 
-import re
 from Bio import SeqIO
 
 # Functions defined:
