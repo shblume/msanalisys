@@ -10,6 +10,7 @@ try:
     import matplotlib.patheffects
     from Bio import AlignIO
     from collections import OrderedDict as odict
+    from plot_ease import *
 except ImportError:
     print(''' One or more of the libraries needed to the execution of this program are not yet installed or malfunctioning.
      Check if the following Python extensions are installed and perfectly working:
@@ -22,11 +23,12 @@ except ImportError:
 
 ALPHABET = odict()
 ALPHABET = {"A": 0, "R": 1, "N": 2, "D": 3, "Q": 4,
-          "E": 5, "G": 6, "H": 7, "L": 8, "K": 9,
-          "M":10, "F":11, "S":12, "T":13, "W":14,
-          "Y":15, "C":16, "I":17, "P":18, "V":19,
-          "-":20, ".":20, "B": 2, "Z": 4, "X":20, "J":20}
-Q = 21
+            "E": 5, "G": 6, "H": 7, "L": 8, "K": 9,
+            "M":10, "F":11, "S":12, "T":13, "W":14,
+            "Y":15, "C":16, "I":17, "P":18, "V":19,
+            "-":20, ".":20, "B": 2, "Z": 4, "X":20,
+            "J":20, "0":21, "1":22}
+Q = 23
 VLIST = list(ALPHABET.values())
 
 # Functions defined:
@@ -92,73 +94,6 @@ def mutualinfo(prob_i,prob_j,prob_ij):
                     MI += 0
     return MI
 
-def normalizer(info,entropy):
-    """ Normalizes a value for another, considering the divisions by zero. """
-    if entropy == 0:
-        if info == 0:
-            normal = 0
-        elif info > 0: 
-            normal = 'positive infinity'
-        elif info < 0:
-            normal = 'negative infinity'
-    elif entropy != 0:
-        normal = (info/entropy)
-    return normal
-
-def multiplot(x_axis,y_axis, xname=None, yname=None, tname=None, note='ko', y_max=None, x_max=None,subplot=None,coord=None, y_scale='linear'):
-    """ Pyplot plottage for any instance. """
-    # For simple plottage
-    if subplot == None:
-        fig, ax = plt.subplots()
-        ax.plot(x_axis,y_axis,note)
-        ax.set(xlabel=xname, ylabel=yname, title=tname)
-        ax.set_yscale(y_scale)
-        if y_max != None:
-            plt.ylim(ymax=y_max)
-        if x_max != None:
-            plt.xlim(xmax=x_max)
-    
-    # For multiplotage
-    else:
-        print(' Warning: for subplots you must call "fig, ax = plt.subplots()" at least to run the code.')
-        if coord == None:
-            axs[subplot].plot(x_axis,y_axis,note)
-            axs[subplot].set(xlabel=xname, ylabel=yname, title=tname)
-            axs[subplot].set_yscale(y_scale)
-            if y_max != None:
-                plt.ylim(ymax=y_max)
-            if x_max != None:
-                plt.xlim(xmax=x_max)
-        else:
-            axs[subplot][coord].plot(x_axis,y_axis,note)
-            axs[subplot][coord].set(xlabel=xname, ylabel=yname, title=tname)
-            axs[subplot][coord].set_yscale(y_scale)
-            if y_max != None:
-                plt.ylim(ymax=y_max)
-            if x_max != None:
-                plt.xlim(xmax=x_max)
-
-def center_spines(ax=None, centerx=0, centery=0,grdval=True):
-    """Centers the axis spines at <centerx, centery> on the axis "ax", and
-    places arrows at the end of the axis spines."""
-    if ax is None:
-        ax = plt.gca()
-
-    # Set the axis's spines to be centered at the given point
-    # (Setting all 4 spines so that the tick marks go in both directions)
-    ax.spines['left'].set_position(('data', centerx))
-    ax.spines['bottom'].set_position(('data', centery))
-    ax.spines['right'].set_position(('data', centerx - 1))
-    ax.spines['top'].set_position(('data', centery - 1))
-
-    # On both the x and y axes...
-    for axis, center in zip([ax.xaxis, ax.yaxis], [centerx, centery]):
-        # Turn on minor and major gridlines and ticks
-        axis.set_ticks_position('both')
-        axis.grid(grdval, 'major', ls='solid', lw=0.5, color='gray')
-        axis.grid(grdval, 'minor', ls='solid', lw=0.1, color='gray')
-        axis.set_minor_locator(mpl.ticker.AutoMinorLocator())
-
 def point_show(result_a,result_b,a_cut=None,b_cut=None):
     higher = [];
     k_list = list(result_a.keys())
@@ -180,11 +115,11 @@ def point_show(result_a,result_b,a_cut=None,b_cut=None):
 
 # Execution:
 
-print(' ====================================================================================================') 
+print(' ==========================================') 
 print('\n     Multiple Sequence Alignment analyzer')
 print('     Developed by: "shblume"')
 print('     https://github/shblume')
-print('\n ====================================================================================================')
+print('\n ==========================================')
 
 try:
     # Opens the alignment and transforms into a matrix.
@@ -213,27 +148,31 @@ for column_i in range(0, len(matrix[0])):
     normalized = normalizer(MI,entropy_i) 
     print(' Column {} out of {}: H = {}bit, I = {}bit.'.format(column_i,(len(matrix[0])-1),entropy_i,MI))
 
-    # Appends the results to lists who will be used to generate plots
-    entro[column_i+1] = entropy_i
-    transin[column_i+1] = MI 
-    normali[column_i+1] = normalized
+    # Appends the results to dictionaires who will be used to generate plots
+    entro[column_i] = entropy_i
+    trans[column_i] = MI 
+    norma[column_i] = normalized
 
 # In the plottages:
 plot_inp = input('\n Plot the normalized transinformation by entropy centered by median of all the data? [y/n]: ')
-plot_names = list(entro.keys())
-normal_plot = list(normali.values())
-trans_plot = list(transin.values())
-entropy_plot = list(entro.values())
+plot_names = list(entro.keys()); normal_plot = list(norma.values())
+trans_plot = list(trans.values()); entropy_plot = list(entro.values())
 
 # Calculates the average in the entropy and normalized transinformation result 
 
 # biased on the median
 if plot_inp == 'y' or plot_inp == 'Y':
     median_norma = st.median(normal_plot); median_entro = st.median(entropy_plot);
+    
     plt.figure(1)
-    multiplot(entropy_plot,normal_plot,xname='Entropy',yname='Normalized transinformation',tname='Graph for normalized transinformation and entropy',note='k+')
+    mpl.style.use('seaborn')
+    multiplot(entropy_plot,normal_plot,xname='Entropy',
+              yname='Normalized transinformation',
+              tname='Graph for normalized transinformation and entropy',
+              note='k+')
     center_spines(centerx = median_entro, centery = median_norma)
     plt.savefig(aln_file+'.entropy_trans.png')
+    
     accept = point_show(entro,normali)
     print('\n The points accepted between the cutoffs are: \n "{}"'.format(accept))    
 
@@ -241,22 +180,42 @@ if plot_inp == 'y' or plot_inp == 'Y':
 else:
     center_entro = input(' Enter the center for entropy: '); center_entro = float(center_entro)
     center_norma = input(' Enter the center for normalized transinformation: '); center_norma = float(center_norma)
+    
     plt.figure(1)
-    multiplot(entropy_plot,normal_plot,xname='Entropy',yname='Normalized transinformation',tname='Graph for normalized transinformation and entropy',note='k+')
+    mpl.style.use('seaborn')
+    multiplot(entropy_plot,normal_plot,xname='Entropy',
+              yname='Normalized transinformation',
+              tname='Graph for normalized transinformation and entropy',
+              note='k+')
     center_spines(centerx = center_entro, centery = center_norma)
     plt.savefig(aln_file+'.entropy_trans.png')
+    
     accept = point_show(entro,normali,a_cut=center_entro,b_cut=center_norma)
     print('\n The points accepted between the cutoffs are: \n "{}"'.format(accept))
 
 
 # Generate plots for each result and a plot for mean normalized and entropy
 plt.figure(2)
-fig, axs = plt.subplots(2, 2, tight_layout=False)
 
-multiplot(plot_names,entropy_plot,tname='entropy',xname='Columns',yname='Entropy',note='go',subplot=0,coord=0)
-multiplot(plot_names,trans_plot,tname='transinformation',xname='Columns',yname='Transinformation',note='yo',subplot=1,coord=0)
-multiplot(plot_names,normal_plot,tname='normalized transinformation',xname='Columns',yname='Normalized transisnformation',note='bo',subplot=0,coord=1)
-multiplot(entropy_plot,normal_plot,tname='normalized vs entropy',xname='Entropy',yname='Normalized Transinformation',note='ko',subplot=1,coord=1)
+mpl.style.use('seaborn')
+figure, axis = plt.subplots(2, 2, tight_layout=False)
+
+multiplot(plot_names,entropy_plot,tname='entropy',
+          xname='Columns',yname='Entropy',note='go',
+          fig=figure,axs=axis,coord=[0,0])
+multiplot(plot_names,trans_plot,tname='transinformation',
+          xname='Columns',yname='Transinformation',note='yo',
+          fig=figure,axs=axis,coord=[1,0])
+multiplot(plot_names,normal_plot,tname='normalized transinformation',
+          xname='Columns',yname='Normalized transisnformation',note='bo',
+          fig=figure,axs=axis,coord=[0,1])
+multiplot(plot_names,trans_plot,tname='normalized vs entropy',
+          xname='Columns',yname='Bits',note='c-',alp=0.7,
+          fig=figure,axs=axis,coord=[1,1])
+multiplot(plot_names,entropy_plot,tname='normalized vs entropy',
+          xname='Columns',yname='Bits',note='r-',alp=0.7,
+          fig=figure,axs=axis,coord=[1,1])
+center_spines()
 
 plt.savefig(aln_file+'.result.png')
 
