@@ -1,4 +1,5 @@
-""" Functions to ease plotting with mathplotlib.pyplot, statistcs, pandas and some aditional calculations. """
+
+""" Functions to ease the use of the mathplotlib.pyplot library and some aditional calculations. """
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,10 +9,8 @@ import matplotlib.patheffects
 # Functions defined:
 
 class CenteredFormatter(matplotlib.ticker.ScalarFormatter):
-
     """Acts exactly like the default Scalar Formatter, but yields an empty
     label for ticks at "center"."""
-
     center = 0
 
     def __call__(self, value, pos=None):
@@ -46,6 +45,19 @@ def splot(x_axis,y_axis, xname=None, yname=None, tname=None, note=None,
         axs.set(xlabel=xname, ylabel=yname, title=tname)
         axs.set_yscale(y_scale)
         axs.set_xscale(x_scale)
+        
+def multiplot(x_axis,y_axis, xname=None, yname=None, tname=None, note='ko',
+              y_max=None, y_min=None, x_max=None, x_min=None, alp=1,
+              fig=None,axs=None,coord=None, tl=False,
+              y_scale='linear',x_scale='linear'):
+    """ Pyplot plottage for any instance. """
+    # For simple plottage
+    if fig == None:
+        fig, ax = plt.subplots(tight_layout=tl)
+        ax.plot(x_axis,y_axis,note,alpha=alp)
+        ax.set(xlabel=xname, ylabel=yname, title=tname)
+        ax.set_yscale(y_scale)
+        ax.set_xscale(x_scale)
         if y_max != None:
             plt.ylim(ymax=y_max)
         if y_min != None:
@@ -72,9 +84,10 @@ def splot(x_axis,y_axis, xname=None, yname=None, tname=None, note=None,
                     axs[coord[0]].plot(x_axis,y_axis,color=col,alpha=alp,marker=m,linestyle=ls)
                 else:
                     axs[coord[0]].plot(x_axis,y_axis,color=col,alpha=alp)
-            axs[coord[0]].set(xlabel=xname, ylabel=yname, title=tname)
-            axs[coord[0]].set_yscale(y_scale)
-            axs[coord[0]].set_xscale(x_scale)
+                    axs[coord[0]].plot(x_axis,y_axis,note,alpha=alp)
+                    axs[coord[0]].set(xlabel=xname, ylabel=yname, title=tname)
+                    axs[coord[0]].set_yscale(y_scale)
+                    axs[coord[0]].set_xscale(x_scale)
             if y_max != None:
                 plt.ylim(ymax=y_max)
             if y_min != None:
@@ -98,9 +111,10 @@ def splot(x_axis,y_axis, xname=None, yname=None, tname=None, note=None,
                     axs[coord[0]][coord[1]].plot(x_axis,y_axis,color=col,alpha=alp,marker=m,linestyle=ls)
                 else:
                     axs[coord[0]][coord[1]].plot(x_axis,y_axis,color=col,alpha=alp)
-            axs[coord[0]][coord[1]].set(xlabel=xname, ylabel=yname, title=tname)
-            axs[coord[0]][coord[1]].set_yscale(y_scale)
-            axs[coord[0]][coord[1]].set_xscale(x_scale)
+                    axs[coord[0]][coord[1]].plot(x_axis,y_axis,note,alpha=alp)
+                    axs[coord[0]][coord[1]].set(xlabel=xname, ylabel=yname, title=tname)
+                    axs[coord[0]][coord[1]].set_yscale(y_scale)
+                    axs[coord[0]][coord[1]].set_xscale(x_scale)
             if y_max != None:
                 plt.ylim(ymax=y_max)
             if y_min != None:
@@ -172,3 +186,6 @@ def normalizer(n,d):
     elif d != 0:
         r = (n/d)
     return r
+
+    
+""" End of the code. """

@@ -45,7 +45,11 @@ def spotter(a_file,b_file):
             b_ident = b_record.id
             if a_ident == b_ident:
                 repeated.append(a_record)
+<<<<<<< HEAD
     SeqIO.write(repeated, fname+'.repeated.fa','fasta')
+=======
+    SeqIO.write(repeated, '.repeated.fa','fasta')
+>>>>>>> f9673590d759d4c3bb8895ca4a82c47baae3bc55
     return repeated
 
 # Execution:

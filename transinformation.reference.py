@@ -2,7 +2,6 @@
 
 # Libraries imported:
 try:
-    import os
     import numpy as np
     import statistics as st
     import pandas as pd
@@ -12,7 +11,6 @@ try:
     from Bio import AlignIO
     from collections import OrderedDict as odict
     from plot_ease import *
-    from functions import *
 except ImportError:
     print(''' One or more of the libraries needed to the execution of this program are not yet installed or malfunctioning.
      Check if the following Python extensions are installed and perfectly working:
@@ -21,8 +19,7 @@ except ImportError:
      "https://github.com/shblume". ''')
     raise
 
-# Constants defined
-
+# Constant defined:
 
 ALPHABET = odict()
 ALPHABET = {"A": 0, "R": 1, "N": 2, "D": 3, "Q": 4,
@@ -32,11 +29,70 @@ ALPHABET = {"A": 0, "R": 1, "N": 2, "D": 3, "Q": 4,
             "-":20, ".":20, "B": 2, "Z": 4, "X":20,
             "J":20, "0":21, "1":22}
 Q = 23
-LAMBDA = 0.001
-OFFSET = 95
-THETA = 1.0
+VLIST = list(ALPHABET.values())
 
-# Functions defined
+# Functions defined:
+
+def reader(fname):
+    """ Transforms a given clustalx file onto a matrix based on a user
+        defined alphabet. """
+    psdmtx = []
+    for record in AlignIO.read(fname+'.aln','clustal'):
+        sequence = record.seq
+        line = list(sequence) 
+        psdline = []
+        for item in line:
+            psdline.append(ALPHABET[item])
+        psdmtx.append(psdline)
+    matrix = np.array(psdmtx).reshape(len(psdmtx),len(psdmtx[0]))
+    return matrix
+
+def accountant(col,mtx):
+    """ Counts the frequence proportion in a column for a given matrix. """
+    count = np.zeros((Q)); #print(count)
+    for index in range(0, len(mtx)):
+        line = mtx[index]
+        aa = line[col]; aa = int(aa) 
+        count[aa] += 1
+    return count/len(mtx)
+
+def entropy(prob):
+    """ Calculates the shannon entropy for a given value. """
+    entropy = 0
+    for item in prob:
+        if item != 0:
+            entropy += -1*(item*np.log2(item))
+        elif item == 0:
+            entropy += 0
+    return entropy
+
+def conjprob(col_i,col_j,mtx):
+    """ Counts the joint proportion in two columns for a given matrix. """
+    count = np.zeros((Q,Q));
+    for ind in range(0,len(mtx)):
+        line = mtx[ind];  
+        aa_i = line[col_i]; aa_i = int(aa_i)
+        aa_j = line[col_j]; aa_j = int(aa_j)
+        for ind1 in range(0,Q):
+            for ind2 in range(0,Q):
+                if (aa_i, aa_j) == (ind1, ind2):
+                    count[ind1][ind2] += 1
+#    print('count:\n{}'.format(count))
+
+    return count/(len(mtx))
+    
+def mutualinfo(prob_i,prob_j,prob_ij):
+    """ Calculates the transinformation between two proportions and the
+        joint proportion. """
+    MI = 0
+    for index1 in range(0, len(prob_i)):
+        for index2 in range(0, len(prob_j)):
+            if prob_i[index1]*prob_j[index2] != 0:
+                if prob_ij[index1][index2] != 0:
+                    MI += prob_ij[index1][index2]*np.log2(prob_ij[index1][index2]/(prob_i[index1]*prob_j[index2]))
+                elif prob_ij[index1][index2] == 0:
+                    MI += 0
+    return MI
 
 def point_show(result_a,result_b,a_cut=None,b_cut=None):
     higher = [];
@@ -67,23 +123,8 @@ print('\n ==========================================')
 
 try:
     # Opens the alignment and transforms into a matrix.
-    os.chdir('/home/earaujo/Repositories/HLA/workbench/gen_a')
-    N_A = 'HLA_GA_edited.fa'
-    N_B = 'CD8.last.fasta'
-    GENOME = np.load('genomes/genome.7000.npy')
-    A_handle = open(N_A, 'r'); B_handle = open(N_B, 'r');
-    msa_A = AlignIO.read(A_handle, 'fasta'); msa_B = AlignIO.read(B_handle, 'fasta')
-    seqnumber = len(msa_A)
-    seqlength = len(msa_A[0]) + len(msa_B[0])
-    encoded_msa0 = np.empty((seqnumber,seqlength),dtype=int)
-    seqs_b = encoded_msa0[:,OFFSET:]
-    for (x,i), A in np.ndenumerate(msa_A):
-        encoded_msa0[x,i]=ALPHABET[A.upper()]
-    for (x,i), A in np.ndenumerate(msa_B):
-        encoded_msa0[x,i+OFFSET]=ALPHABET[A.upper()]
-    
-    encoded_msa, Meff = Codemsa(GENOME, encoded_msa0, seqs_b, OFFSET, THETA)
-    
+    aln_file = input('\n Please, insert the alignment in clustal file format (".aln"): ')
+    matrix = reader(aln_file); 
 except:
     print(''' The file you just entered is not valid or is not in the same path as this program.
       The correct file must be a clustal file, with extension ".aln". You must input it's name ONLY,
@@ -91,28 +132,111 @@ except:
       If the use of this program is not clear to you, visit the link "https://github/shblume" to
       know how to use the program. ''')
 
+# Sets the reference channel as the last column and calculates all useful values
+column_j = -1
+count_j = accountant(column_j,matrix);
+entropy_j = entropy(count_j)
+print(' The entropy of the reference column is: {} bit.'.format(entropy_j))
+entro = odict (); transin = odict(); normali = odict()
 
+# Calculates all values of entropy and transinformation for all other columns
+for column_i in range(0, len(matrix[0])):
+    count_i = accountant(column_i,matrix)
+    entropy_i = entropy(count_i)
+    conj_prob = conjprob(column_i,column_j,matrix); 
+    MI = mutualinfo(count_i,count_j,conj_prob); 
+    normalized = normalizer(MI,entropy_i) 
+    print(' Column {} out of {}: H = {}bit, I = {}bit.'.format(column_i,(len(matrix[0])-1),entropy_i,MI))
 
-ics_a = list(range(0, len(encoded_msa)))
-ics_b = list(range(OFFSET,OFFSET + 108))
-ics = np.concatenate((ics_a, ics_b))
-
-nA = len(ics_a)
-nB = len(ics_b)
-seqlength = nA+nB
-
-pairs = []
-idx_pairs = []
-for i, ai in enumerate(ics_a):
-    for j, aj in enumerate(ics_b):
-        pairs.append((ai,aj))
-        idx_pairs.append((i,j))
-
-nP = len(pairs)
-
-sitefreq = Sitefreq(encoded_msa, Meff, ics, nA+nB, Q, LAMBDA)
-pairfreq = Pairfreq(encoded_msa, Meff, ics, nA+nB, sitefreq, Q, LAMBDA)
-mi, h = information(sitefreq, pairfreq, nP, pairs, idx_pairs, Q)
+    # Appends the results to dictionaires who will be used to generate plots
+    entro[column_i] = entropy_i
+    trans[column_i] = MI 
+    norma[column_i] = normalized
 
 # In the plottages:
+plot_inp = input('\n Plot the normalized transinformation by entropy centered by median of all the data? [y/n]: ')
+plot_names = list(entro.keys()); normal_plot = list(norma.values())
+trans_plot = list(trans.values()); entropy_plot = list(entro.values())
 
+# Calculates the average in the entropy and normalized transinformation result 
+
+# biased on the median
+if plot_inp == 'y' or plot_inp == 'Y':
+    median_norma = st.median(normal_plot); median_entro = st.median(entropy_plot);
+    
+    plt.figure(1)
+    mpl.style.use('seaborn')
+    multiplot(entropy_plot,normal_plot,xname='Entropy',
+              yname='Normalized transinformation',
+              tname='Graph for normalized transinformation and entropy',
+              note='k+')
+    center_spines(centerx = median_entro, centery = median_norma)
+    plt.savefig(aln_file+'.entropy_trans.png')
+    
+    accept = point_show(entro,normali)
+    print('\n The points accepted between the cutoffs are: \n "{}"'.format(accept))    
+
+# Or calculates it biased on some user's input
+else:
+    center_entro = input(' Enter the center for entropy: '); center_entro = float(center_entro)
+    center_norma = input(' Enter the center for normalized transinformation: '); center_norma = float(center_norma)
+    
+    plt.figure(1)
+    mpl.style.use('seaborn')
+    multiplot(entropy_plot,normal_plot,xname='Entropy',
+              yname='Normalized transinformation',
+              tname='Graph for normalized transinformation and entropy',
+              note='k+')
+    center_spines(centerx = center_entro, centery = center_norma)
+    plt.savefig(aln_file+'.entropy_trans.png')
+    
+    accept = point_show(entro,normali,a_cut=center_entro,b_cut=center_norma)
+    print('\n The points accepted between the cutoffs are: \n "{}"'.format(accept))
+
+
+# Generate plots for each result and a plot for mean normalized and entropy
+plt.figure(2)
+
+mpl.style.use('seaborn')
+figure, axis = plt.subplots(2, 2, tight_layout=False)
+
+multiplot(plot_names,entropy_plot,tname='entropy',
+          xname='Columns',yname='Entropy',note='go',
+          fig=figure,axs=axis,coord=[0,0])
+multiplot(plot_names,trans_plot,tname='transinformation',
+          xname='Columns',yname='Transinformation',note='yo',
+          fig=figure,axs=axis,coord=[1,0])
+multiplot(plot_names,normal_plot,tname='normalized transinformation',
+          xname='Columns',yname='Normalized transisnformation',note='bo',
+          fig=figure,axs=axis,coord=[0,1])
+multiplot(plot_names,trans_plot,tname='normalized vs entropy',
+          xname='Columns',yname='Bits',note='c-',alp=0.7,
+          fig=figure,axs=axis,coord=[1,1])
+multiplot(plot_names,entropy_plot,tname='normalized vs entropy',
+          xname='Columns',yname='Bits',note='r-',alp=0.7,
+          fig=figure,axs=axis,coord=[1,1])
+center_spines()
+
+plt.savefig(aln_file+'.result.png')
+
+# Generates the result data frame and exports it as a ".xlsx" file
+df_plot = []; ac_plot = []
+col_names = ['entropy (H)','transinformation (I)', 'I/H']
+for item in plot_names:
+    df_plot.append([entro[item],transin[item],normali[item]])
+
+for item in accept:
+    ac_plot.append([entro[item],transin[item],normali[item]])
+
+writer = pd.ExcelWriter(aln_file+'.result.xlsx')
+df1 = pd.DataFrame(df_plot,index=plot_names, columns=col_names)
+df2 = pd.DataFrame(ac_plot,index=accept, columns=col_names)
+df1.to_excel(writer, 'Results')
+df2.to_excel(writer, 'Above cutoff values')
+writer.save()
+writer.close()
+
+print('\n Program succesful! Check your file.')
+print(' Program closing...')
+
+""" End of the code. """
