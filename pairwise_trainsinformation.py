@@ -29,6 +29,7 @@ os.chdir('/home/earaujo/Repositories/HLA/workbench/gen_a')
 N_A = 'HLA_GA_edited.fa'
 N_B = 'CD8.last.fasta'
 # Genome used:
+START = 0
 LOOPS = 10000
 ALPHABET = odict()
 ALPHABET = {"A": 0, "R": 1, "N": 2, "D": 3, "Q": 4,
@@ -81,7 +82,7 @@ for (x,i), A in np.ndenumerate(msa_B):
     encoded_msa0[x,i+OFFSET]=ALPHABET[A.upper()]
 
 all_mi = []
-for index in range(0, LOOPS):    
+for index in range(START, LOOPS):    
     encoded_msa, Meff = Codemsa(np.load('genomes/genome.{}.npy'.format(index)), encoded_msa0, seqs_b, OFFSET, THETA)
     
     ics_a = [1,2,4,5,6,9,10,13,16,19,20,33,48,57,61,62,63,67,70,75,77,79]
@@ -110,5 +111,3 @@ for index in range(0, LOOPS):
 splot(all_mi, None, xname='Generations', yname='bits',
       tname='Sum of the transinformation and maximum entropy per generation', note='b-')
 plt.show()
-
-
