@@ -19,13 +19,11 @@ class CenteredFormatter(matplotlib.ticker.ScalarFormatter):
         else:
             return matplotlib.ticker.ScalarFormatter.__call__(self,
 value, pos)
-
-def splot(x_axis,y_axis, xname=None, yname=None, tname=None, note=None,
+        
+def splot((x_axis,y_axis, xname=None, yname=None, tname=None, note=None,
           y_max=None, y_min=None, x_max=None, x_min=None, alp=1,
           fig=None,axs=None,coord=None, tl=False, lw=1, ms=1,
           ls='solid', m='o', col='black', y_scale='linear',x_scale='linear'):
-    """ Pyplot plottage for any instance. """
-    # For simple plottage
     if fig == None:
         fig, axs = plt.subplots(tight_layout=tl)
         if y_axis == None:
@@ -45,27 +43,6 @@ def splot(x_axis,y_axis, xname=None, yname=None, tname=None, note=None,
         axs.set(xlabel=xname, ylabel=yname, title=tname)
         axs.set_yscale(y_scale)
         axs.set_xscale(x_scale)
-        
-def multiplot(x_axis,y_axis, xname=None, yname=None, tname=None, note='ko',
-              y_max=None, y_min=None, x_max=None, x_min=None, alp=1,
-              fig=None,axs=None,coord=None, tl=False,
-              y_scale='linear',x_scale='linear'):
-    """ Pyplot plottage for any instance. """
-    # For simple plottage
-    if fig == None:
-        fig, ax = plt.subplots(tight_layout=tl)
-        ax.plot(x_axis,y_axis,note,alpha=alp)
-        ax.set(xlabel=xname, ylabel=yname, title=tname)
-        ax.set_yscale(y_scale)
-        ax.set_xscale(x_scale)
-        if y_max != None:
-            plt.ylim(ymax=y_max)
-        if y_min != None:
-            plt.ylim(ymin=y_min)
-        if x_max != None:
-            plt.xlim(xmax=x_max)
-        if x_min != None:
-            plt.xlim(xmin=x_min)
     
     # For multiplotage
     else:
